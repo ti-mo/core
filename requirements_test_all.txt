@@ -1096,6 +1096,9 @@ twilio==6.32.0
 # homeassistant.components.twinkly
 twinkly-client==0.0.2
 
+# homeassistant.components.comfo
+twirp==0.0.3
+
 # homeassistant.components.upb
 upb_lib==0.4.12
 
