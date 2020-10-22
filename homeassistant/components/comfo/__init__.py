@@ -23,9 +23,9 @@ from .const import (
     CACHE_TEMPS,
     DOMAIN,
 )
-from .exceptions import twirp_caller
+from .exceptions import twirp_exception_handler
 
-PLATFORMS = ["binary_sensor", "sensor", "fan"]
+PLATFORMS = ["binary_sensor", "fan", "sensor"]
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ async def async_setup(hass: HomeAssistant, config: dict):
     return True
 
 
-@twirp_caller
+@twirp_exception_handler
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """
     Set up comfo from a config entry.

@@ -14,7 +14,7 @@ class RequestTimeout(HomeAssistantError):
     """Error to indicate the connection timeout was exceeded."""
 
 
-def twirp_caller(func):
+def twirp_exception_handler(func):
     """
     Decorate Home Assistant functions that call into Twirp-based libraries.
 

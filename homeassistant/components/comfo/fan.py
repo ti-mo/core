@@ -16,7 +16,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import CACHE_BOOTINFO, CACHE_FANPROFILES, DOMAIN
-from .exceptions import twirp_caller
+from .exceptions import twirp_exception_handler
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -86,7 +86,7 @@ class ComfoFan(CoordinatorEntity, FanEntity):
         """Turn off the fan (to away)."""
         await self.async_set_speed(SPEED_OFF)
 
-    @twirp_caller
+    @twirp_exception_handler
     async def async_set_speed(self, speed: str) -> None:
         """Set fan speed."""
         _LOGGER.debug("Changing fan speed to %s", speed)

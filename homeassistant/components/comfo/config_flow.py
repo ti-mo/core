@@ -8,20 +8,20 @@ from homeassistant import config_entries, core
 from homeassistant.const import CONF_HOST
 
 from .const import DOMAIN  # pylint:disable=unused-import
-from .exceptions import CannotConnect, RequestTimeout, twirp_caller
+from .exceptions import CannotConnect, RequestTimeout, twirp_exception_handler
 
 _LOGGER = logging.getLogger(__name__)
 
 DATA_SCHEMA = vol.Schema({CONF_HOST: str})
 
 
-@twirp_caller
+@twirp_exception_handler
 async def validate_input(hass: core.HomeAssistant, data):
     """
     Validate whether the user's input allows us to connect.
 
     Data has the keys from DATA_SCHEMA with values provided by the user.
-    Exception handling is done by the @twirp_caller decorator.
+    Exception handling is done by the @twirp_exception_handler decorator.
     """
     host = data[CONF_HOST]
     client = Comfo(host)
