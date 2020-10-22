@@ -3,6 +3,7 @@ import logging
 
 from comfo import Comfo
 from comfo.types import FanProfiles
+import voluptuous as vol
 
 from homeassistant.components.fan import (
     SPEED_HIGH,
@@ -13,6 +14,7 @@ from homeassistant.components.fan import (
     FanEntity,
 )
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers import config_validation as cv, entity_platform
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import CACHE_BOOTINFO, CACHE_FANPROFILES, DOMAIN
@@ -39,6 +41,31 @@ async def async_setup_entry(hass, config_entry: ConfigEntry, async_add_entities)
                 entry_id=config_entry.entry_id,
             )
         ]
+    )
+
+    # Register service calls for modifying various parameters of the unit.
+    platform = entity_platform.current_platform.get()
+
+    # Set the comfort temperature of the unit (heat exchanger target temp).
+    platform.async_register_entity_service(
+        "set_comfort_temperature",
+        {vol.Required("temperature"): cv.byte},
+        "async_set_comfort_temperature",
+    )
+
+    # Set off, low, ... fan profiles to duty levels expressed in percent.
+    platform.async_register_entity_service(
+        "set_fan_profile",
+        {
+            vol.Required("profile"): vol.In(
+                ComfoFan.SPEED_MAPPING_TO_COMFO.keys(),
+                msg=f"Profile must be one of '{', '.join(ComfoFan.SPEED_MAPPING_TO_COMFO.keys())}'",
+            ),
+            vol.Required("percent"): vol.All(
+                vol.Coerce(int), vol.Range(min=0, max=100)
+            ),
+        },
+        "async_set_fan_profile",
     )
 
     return True
@@ -100,6 +127,41 @@ class ComfoFan(CoordinatorEntity, FanEntity):
 
         # Pull in the new state information from the unit.
         await self.async_update_ha_state(force_refresh=True)
+
+    @twirp_exception_handler
+    async def async_set_comfort_temperature(self, temperature: int) -> None:
+        """Set comfort temperature."""
+        _LOGGER.debug("Changing comfort temperature to %d", temperature)
+
+        modified = await self._api.async_set_comfort_temperature(
+            temperature=temperature
+        )
+
+        if modified:
+            _LOGGER.debug("Comfort temperature was changed on the unit")
+
+            # Pull in the new state information from the unit.
+            await self.async_update_ha_state(force_refresh=True)
+        else:
+            _LOGGER.debug("Comfort temperature unmodified")
+
+    @twirp_exception_handler
+    async def async_set_fan_profile(self, profile: int, percent: int) -> None:
+        """Set fan speed."""
+        _LOGGER.debug("Changing profile %s to %d percent", profile, percent)
+
+        modified = await self._api.async_set_fan_profile(
+            profile=self.SPEED_MAPPING_TO_COMFO[profile],
+            percent=percent,
+        )
+
+        if modified:
+            _LOGGER.debug("Profile '%s' was changed on the unit", profile)
+
+            # Pull in the new state information from the unit.
+            await self.async_update_ha_state(force_refresh=True)
+        else:
+            _LOGGER.debug("Profile '%s' unmodified", profile)
 
     @property
     def speed(self) -> str:
