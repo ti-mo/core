@@ -2,7 +2,7 @@
 
 DOMAIN = "comfo"
 
-# Home Assistant doesn't have device classes for speed/rpm sensors.
+# Custom device classes.
 DEVICE_CLASS_FANSPEED = "fanspeed"
 DEVICE_CLASS_FANDUTY = "fanduty"
 DEVICE_CLASS_ERROR = "boolean"
@@ -15,3 +15,5 @@ CACHE_FANPROFILES = 3
 CACHE_ERRORS = 4
 
 RPM = "rpm"
+
+ATTR_OPTIONAL = "optional"

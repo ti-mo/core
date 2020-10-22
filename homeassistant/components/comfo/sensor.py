@@ -15,6 +15,7 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
+    ATTR_OPTIONAL,
     CACHE_BOOTINFO,
     CACHE_FANS,
     CACHE_TEMPS,
@@ -26,24 +27,40 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-
+# Sensors are named after their field names in Comfo's protobuf definition.
+# Since protobuf fields names are global, there can be no overlapping fields.
 SENSORS = {
     # TODO: Rename to InsideAir.
     "OutAir": {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_TEMPERATURE,
-        ATTR_FRIENDLY_NAME: "Inside Temperature",
+        ATTR_FRIENDLY_NAME: "Inside Air Temperature",
     },
     "OutsideAir": {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_TEMPERATURE,
-        ATTR_FRIENDLY_NAME: "Outside Temperature",
+        ATTR_FRIENDLY_NAME: "Outside Air Temperature",
     },
     "SupplyAir": {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_TEMPERATURE,
-        ATTR_FRIENDLY_NAME: "Supply Temperature",
+        ATTR_FRIENDLY_NAME: "Supply Air Temperature",
     },
     "ExhaustAir": {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_TEMPERATURE,
-        ATTR_FRIENDLY_NAME: "Exhaust Temperature",
+        ATTR_FRIENDLY_NAME: "Exhaust Air Temperature",
+    },
+    "GeoHeat": {
+        ATTR_DEVICE_CLASS: DEVICE_CLASS_TEMPERATURE,
+        ATTR_FRIENDLY_NAME: "Ground Loop Temperature",
+        ATTR_OPTIONAL: True,
+    },
+    "Reheating": {
+        ATTR_DEVICE_CLASS: DEVICE_CLASS_TEMPERATURE,
+        ATTR_FRIENDLY_NAME: "Reheater Air Temperature",
+        ATTR_OPTIONAL: True,
+    },
+    "KitchenHood": {
+        ATTR_DEVICE_CLASS: DEVICE_CLASS_TEMPERATURE,
+        ATTR_FRIENDLY_NAME: "Kitchen Hood Air Temperature",
+        ATTR_OPTIONAL: True,
     },
     "InPercent": {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_FANDUTY,
@@ -81,14 +98,23 @@ async def async_setup_entry(hass, config_entry: ConfigEntry, async_add_entities)
 
     # Generate sensor entities and register them with hass.
     async_add_entities(
-        ComfoSensor(
-            coordinator=coordinator,
-            name=f"{coordinator.data[CACHE_BOOTINFO].DeviceName} {sensor[ATTR_FRIENDLY_NAME]}",
-            cache_key=name,
-            sensor_class=sensor[ATTR_DEVICE_CLASS],
-            entry_id=config_entry.entry_id,
+        s
+        for s in (
+            ComfoSensor(
+                coordinator=coordinator,
+                name=f"{coordinator.data[CACHE_BOOTINFO].DeviceName} {sensor[ATTR_FRIENDLY_NAME]}",
+                cache_key=name,
+                sensor_class=sensor[ATTR_DEVICE_CLASS],
+                entry_id=config_entry.entry_id,
+                optional=sensor.get(ATTR_OPTIONAL, False),
+            )
+            for name, sensor in enabled_sensors.items()
         )
-        for name, sensor in enabled_sensors.items()
+        # Skip sensors that are marked as optional and have a reading of 0.
+        # These are sensor values written by optional hardware on the unit.
+        # Since these are mostly indoor/heater accessories, they are safe to
+        # skip if they have a reading of 0 or lower.
+        if not (s.optional and s.state <= 0)
     )
 
     return True
@@ -108,6 +134,7 @@ class ComfoSensor(CoordinatorEntity, Entity):
         cache_key: str,
         sensor_class: str,
         entry_id: str,
+        optional: bool = False,
     ) -> None:
         """Initialize a Comfo sensor."""
         super().__init__(coordinator)
@@ -116,6 +143,7 @@ class ComfoSensor(CoordinatorEntity, Entity):
         self._cache_key = cache_key
         self._class = sensor_class
         self._entry_id = entry_id
+        self._optional = optional
 
     @property
     def state(self) -> int:
@@ -153,6 +181,11 @@ class ComfoSensor(CoordinatorEntity, Entity):
             DEVICE_CLASS_FANSPEED: "mdi:fan",
             DEVICE_CLASS_PROBLEM: "mdi:exclamation",  # Used by ComfoBinarySensor.
         }[self._class]
+
+    @property
+    def optional(self) -> bool:
+        """Return whether or not the sensor is an option/add-on to the unit."""
+        return self._optional
 
     @property
     def unit_of_measurement(self) -> str:
