@@ -1,39 +1,17 @@
 ---
-set_comfort_temperature:
-  description: >
-    Set the comfort temperature of the unit. The comfort temperature is the 
-    maximum temperature of air inbound to the house.
-
-    When it's colder on the outside than on the inside, the unit will try to
-    reclaim the heat from outbound air by exchanging it to the inbound air.
-    The comfort temperature sets the cut-off point of the heat exchanger.
-
-    For example, if the house is at 25°C and the outside is at 15°C, setting
-    a comfort temperature of 21°C will ensure the unit pushes air into the
-    house that's no hotter than 21°C.
-
-  fields:
-    entity_id:
-      description: Name(s) of the entities to set
-      example: fan.whr_960_ventilation_unit
-
-    temperature:
-      description: The comfort temperature to configure on the unit, in °C
-      example: 21
-
-set_fan_profile:
+configure_fan_profile:
   description: >
     Configure the unit's fan profiles. The unit comes with 4 fixed profiles:
     off/low/medium/high. Each profile is associated with a fan percentage.
   fields:
     entity_id:
       description: Name(s) of the entities to set
-      example: fan.whr_960_ventilation_unit
+      example: climate.whr_960_ventilation_unit
 
     profile:
       description: One of 'off', 'low', 'medium' or 'high'. 
       example: low
 
     percent:
-      description: The duty level to set for the profile, expressed in percent.
+      description: The duty level to set for the profile, expressed in percent. (15-100)
       example: 25

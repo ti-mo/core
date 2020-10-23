@@ -14,6 +14,14 @@ class RequestTimeout(HomeAssistantError):
     """Error to indicate the connection timeout was exceeded."""
 
 
+class TemperatureError(HomeAssistantError):
+    """Invalid temperature value provided."""
+
+
+class HVACModeError(HomeAssistantError):
+    """The HVAC mode cannot be controlled on the unit."""
+
+
 def twirp_exception_handler(func):
     """
     Decorate Home Assistant functions that call into Twirp-based libraries.

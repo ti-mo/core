@@ -25,7 +25,7 @@ from .const import (
 )
 from .exceptions import twirp_exception_handler
 
-PLATFORMS = ["binary_sensor", "fan", "sensor"]
+PLATFORMS = ["binary_sensor", "climate", "sensor"]
 
 _LOGGER = logging.getLogger(__name__)
 
