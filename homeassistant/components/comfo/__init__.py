@@ -17,6 +17,7 @@ from homeassistant.helpers.update_coordinator import (
 
 from .const import (
     CACHE_BOOTINFO,
+    CACHE_BYPASS,
     CACHE_ERRORS,
     CACHE_FANPROFILES,
     CACHE_FANS,
@@ -65,6 +66,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
                     CACHE_FANS: await api.async_get_fans(),
                     CACHE_FANPROFILES: await api.async_get_fan_profiles(),
                     CACHE_TEMPS: await api.async_get_temps(),
+                    CACHE_BYPASS: await api.async_get_bypass(),
                 }
 
         except Exception as err:

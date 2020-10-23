@@ -22,7 +22,7 @@ from homeassistant.const import PRECISION_WHOLE, TEMP_CELSIUS
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CACHE_BOOTINFO, CACHE_FANPROFILES, CACHE_TEMPS, DOMAIN
+from .const import CACHE_BOOTINFO, CACHE_BYPASS, CACHE_FANPROFILES, CACHE_TEMPS, DOMAIN
 from .exceptions import HVACModeError, TemperatureError, twirp_exception_handler
 
 _LOGGER = logging.getLogger(__name__)
@@ -197,12 +197,16 @@ class ComfoUnit(CoordinatorEntity, ClimateEntity):
     def hvac_mode(self) -> str:
         """Return the currently-active HVAC mode.
 
-        The unit is autonomous in activating the HVAC mode.
+        The unit is autonomous in activating its heat exchanger based on
+        the configured comfort temperature.
         If the outdoor temperature is lower than the indoor temperature,
         heat recovery will automatically occur up to the comfort temperature.
-
-        TODO: Return HVAC_MODE_HEAT when heat exchanger is active (bypass closed).
         """
+        # Bypass is deactivated, so heat exchanger is active.
+        if self.coordinator.data[CACHE_BYPASS].Level == 0:
+            return HVAC_MODE_HEAT
+
+        # Bypass is activated, no heat is recovered.
         return HVAC_MODE_FAN_ONLY
 
     async def async_set_hvac_mode(self, hvac_mode: str) -> None:
