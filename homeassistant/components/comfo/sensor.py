@@ -28,10 +28,9 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 # Sensors are named after their field names in Comfo's protobuf definition.
-# Since protobuf fields names are global, there can be no overlapping fields.
+# Since protobuf field names are global, there can be no overlapping fields.
 SENSORS = {
-    # TODO: Rename to InsideAir.
-    "OutAir": {
+    "InsideAir": {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_TEMPERATURE,
         ATTR_FRIENDLY_NAME: "Inside Air Temperature",
     },
