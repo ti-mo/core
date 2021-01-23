@@ -17,6 +17,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import (
     ATTR_OPTIONAL,
     CACHE_BOOTINFO,
+    CACHE_BYPASS,
     CACHE_FANS,
     CACHE_TEMPS,
     DEVICE_CLASS_FANDUTY,
@@ -26,6 +27,8 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+DEVICE_CLASS_BYPASS = "bypass"
 
 # Sensors are named after their field names in Comfo's protobuf definition.
 # Since protobuf field names are global, there can be no overlapping fields.
@@ -76,6 +79,10 @@ SENSORS = {
     "OutSpeed": {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_FANSPEED,
         ATTR_FRIENDLY_NAME: "Exhaust Fan Speed",
+    },
+    "Level": {
+        ATTR_DEVICE_CLASS: DEVICE_CLASS_BYPASS,
+        ATTR_FRIENDLY_NAME: "Heat Exchanger Bypass",
     },
 }
 
@@ -152,6 +159,7 @@ class ComfoSensor(CoordinatorEntity, Entity):
             DEVICE_CLASS_FANDUTY: CACHE_FANS,
             DEVICE_CLASS_FANSPEED: CACHE_FANS,
             DEVICE_CLASS_TEMPERATURE: CACHE_TEMPS,
+            DEVICE_CLASS_BYPASS: CACHE_BYPASS,
         }[self._class]
 
         return getattr(self.coordinator.data[cache], self._cache_key)
@@ -179,6 +187,7 @@ class ComfoSensor(CoordinatorEntity, Entity):
             DEVICE_CLASS_FANDUTY: "mdi:fan",
             DEVICE_CLASS_FANSPEED: "mdi:fan",
             DEVICE_CLASS_PROBLEM: "mdi:exclamation",  # Used by ComfoBinarySensor.
+            DEVICE_CLASS_BYPASS: "mdi:air-filter",
         }[self._class]
 
     @property
@@ -195,7 +204,8 @@ class ComfoSensor(CoordinatorEntity, Entity):
         default to a unit of None.
         """
         return {
-            DEVICE_CLASS_TEMPERATURE: TEMP_CELSIUS,
+            DEVICE_CLASS_BYPASS: PERCENTAGE,
             DEVICE_CLASS_FANDUTY: PERCENTAGE,
             DEVICE_CLASS_FANSPEED: RPM,
+            DEVICE_CLASS_TEMPERATURE: TEMP_CELSIUS,
         }.get(self._class, None)

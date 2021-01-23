@@ -128,6 +128,11 @@ class ComfoUnit(CoordinatorEntity, ClimateEntity):
         return self.coordinator.data[CACHE_TEMPS].Comfort
 
     @property
+    def current_temperature(self) -> float:
+        """Return the current indoor outlet air temperature."""
+        return self.coordinator.data[CACHE_TEMPS].InsideAir
+
+    @property
     def target_temperature_step(self) -> float:
         """Return the comfort temperature step the unit supports."""
         return self.precision
@@ -215,7 +220,9 @@ class ComfoUnit(CoordinatorEntity, ClimateEntity):
         The unit doesn't allow the mode to be changed, but does use the 'hvac_mode'
         to communicate whether or not the heat exchanger is active.
         """
-        raise HVACModeError("HVAC mode cannot be modified")
+        raise HVACModeError(
+            "This unit's HVAC mode reflects the heat exchanger bypass status and is read-only"
+        )
 
     @property
     def unique_id(self):
