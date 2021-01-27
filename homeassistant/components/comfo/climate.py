@@ -66,6 +66,43 @@ async def async_setup_entry(hass, config_entry: ConfigEntry, async_add_entities)
         "async_configure_fan_profile",
     )
 
+    # Set the active fan mode of the unit.
+    platform.async_register_entity_service(
+        "set_fan_mode",
+        {
+            vol.Required("fan_mode"): vol.In(
+                ComfoUnit.SPEED_MAPPING_TO_COMFO.keys(),
+                msg=f"fan_mode must be one of '{', '.join(ComfoUnit.SPEED_MAPPING_TO_COMFO.keys())}'",
+            ),
+        },
+        "async_set_fan_mode",
+    )
+
+    # Increase the unit's fan duty.
+    platform.async_register_entity_service(
+        "fan_mode_up",
+        {},
+        "async_fan_mode_up",
+    )
+
+    # Decrease the unit's fan duty.
+    platform.async_register_entity_service(
+        "fan_mode_down",
+        {},
+        "async_fan_mode_down",
+    )
+
+    # Set the comfort temperature of the unit in degrees Celsius.
+    platform.async_register_entity_service(
+        "set_temperature",
+        {
+            vol.Required("temperature"): vol.All(
+                vol.Coerce(int), vol.Range(min=0, max=100)
+            ),
+        },
+        "async_set_temperature",
+    )
+
     return True
 
 
@@ -197,6 +234,42 @@ class ComfoUnit(CoordinatorEntity, ClimateEntity):
 
         # Pull in the new state information from the unit.
         await self.async_update_ha_state(force_refresh=True)
+
+    async def async_fan_mode_up(self) -> None:
+        """Increase fan speed."""
+        modes = self.fan_modes
+        current_mode = self.fan_mode
+        if current_mode is None:
+            _LOGGER.error("Error getting current fan speed, got None")
+            return
+
+        next_index = modes.index(current_mode) + 1
+        if next_index >= len(modes):
+            _LOGGER.debug("Already at max fan mode, cannot increase")
+            return
+
+        next_mode = modes[next_index]
+
+        await self.async_set_fan_mode(fan_mode=next_mode)
+        _LOGGER.debug(f"Increased fan mode from {current_mode} to {next_mode}")
+
+    async def async_fan_mode_down(self) -> None:
+        """Decrease fan speed."""
+        modes = self.fan_modes
+        current_mode = self.fan_mode
+        if current_mode is None:
+            _LOGGER.error("Error getting current fan speed, got None")
+            return
+
+        prev_index = modes.index(current_mode) - 1
+        if prev_index < 0:
+            _LOGGER.debug("Already at minimum fan mode, cannot decrease")
+            return
+
+        prev_mode = modes[prev_index]
+
+        await self.async_set_fan_mode(fan_mode=prev_mode)
+        _LOGGER.debug(f"Decreased fan mode from {current_mode} to {prev_mode}")
 
     @property
     def hvac_mode(self) -> str:
