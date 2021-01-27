@@ -8,7 +8,7 @@ from homeassistant import config_entries, core
 from homeassistant.const import CONF_HOST
 
 from .const import DOMAIN  # pylint:disable=unused-import
-from .exceptions import CannotConnect, RequestTimeout, twirp_exception_handler
+from .exceptions import CannotConnect, twirp_exception_handler
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -50,8 +50,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return self.async_create_entry(title=info["title"], data=user_input)
             except CannotConnect:
                 errors["base"] = "cannot_connect"
-            except RequestTimeout:
-                errors["base"] = "request_timeout"
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"

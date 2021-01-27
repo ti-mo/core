@@ -3,7 +3,7 @@ from comfo import comfo_pb2
 from comfo.types import BootInfo
 
 from homeassistant import config_entries, setup
-from homeassistant.components.comfo.config_flow import CannotConnect, RequestTimeout
+from homeassistant.components.comfo.config_flow import CannotConnect
 from homeassistant.components.comfo.const import DOMAIN
 
 from tests.async_mock import patch
@@ -68,24 +68,3 @@ async def test_form_cannot_connect(hass):
 
     assert result2["type"] == "form"
     assert result2["errors"] == {"base": "cannot_connect"}
-
-
-async def test_form_request_timeout(hass):
-    """Test whether we handle RequestTimeout."""
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
-    )
-
-    with patch(
-        "homeassistant.components.comfo.config_flow.Comfo.async_ping",
-        side_effect=RequestTimeout,
-    ):
-        result2 = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            {
-                "host": "1.1.1.1",
-            },
-        )
-
-    assert result2["type"] == "form"
-    assert result2["errors"] == {"base": "request_timeout"}

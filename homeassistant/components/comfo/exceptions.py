@@ -10,10 +10,6 @@ class CannotConnect(HomeAssistantError):
     """Error to indicate we cannot connect."""
 
 
-class RequestTimeout(HomeAssistantError):
-    """Error to indicate the connection timeout was exceeded."""
-
-
 class TemperatureError(HomeAssistantError):
     """Invalid temperature value provided."""
 
@@ -33,10 +29,8 @@ def twirp_exception_handler(func):
         try:
             return await func(*args, **kwargs)
         except TwirpServerException as e:
-            if e.code == Errors.Unavailable:
+            if e.code in (Errors.Unavailable, Errors.DeadlineExceeded):
                 raise CannotConnect
-            elif e.code == Errors.DeadlineExceeded:
-                raise RequestTimeout
             else:
                 raise e
 
