@@ -433,6 +433,9 @@ colorlog==4.6.2
 # homeassistant.components.color_extractor
 colorthief==0.2.1
 
+# homeassistant.components.comfo
+comfo==0.2.0
+
 # homeassistant.components.concord232
 concord232==0.15
 
@@ -2218,9 +2221,6 @@ twilio==6.32.0
 
 # homeassistant.components.twinkly
 twinkly-client==0.0.2
-
-# homeassistant.components.comfo
-twirp==0.0.3
 
 # homeassistant.components.rainforest_eagle
 uEagle==0.0.2
